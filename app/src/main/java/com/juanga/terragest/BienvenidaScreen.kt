@@ -18,9 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BienvenidaScreen() {
-    // Box nos permite poner la imagen al fondo y los textos/botones encima
-    Box(modifier = Modifier.fillMaxSize()) {
+       fun BienvenidaScreen(
+           onNavegarLogin: () -> Unit = {},
+           onNavegarRegistro: () -> Unit = {}
+           ) {
 
         // 1. Capa del Fondo (Imagen de naturaleza)
         Image(
@@ -72,7 +73,7 @@ fun BienvenidaScreen() {
 
             // Botón: Inicia Sesión
             OutlinedButton(
-                onClick = { /* Aquí programaremos ir a la pantalla blanca */ },
+                onClick  =  onNavegarLogin,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -90,7 +91,7 @@ fun BienvenidaScreen() {
 
             // Botón: Crear Cuenta
             OutlinedButton(
-                onClick = { /* Aquí programaremos ir al registro */ },
+                onClick = onNavegarRegistro,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -107,7 +108,7 @@ fun BienvenidaScreen() {
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
-}
+
 
 // Visualización de la pantalla
 @Preview(showBackground = true)

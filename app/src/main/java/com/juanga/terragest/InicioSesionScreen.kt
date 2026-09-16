@@ -1,7 +1,7 @@
 package com.juanga.terragest
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -12,95 +12,62 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// IMPORTANTE: Asegúrate de importar el paquete R de tu proyecto, por ejemplo:
-// import com.tu.paquete.R
 
 @Composable
-fun InicioSesionScreen() {
-    // 1. Estados (Variables que guardan lo que el usuario escribe)
+fun InicioSesionScreen(
+    onNavegarRecuperar: () -> Unit = {},
+    onNavegarAtras: () -> Unit = {},
+    onNavegarInicio: () -> Unit = {} // NUEVO PARÁMETRO
+) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
+    var verContrasena by remember { mutableStateOf(false) }
 
-    // 2. Contenedor principal (Apila los elementos verticalmente)
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF2F2F2)) // El color Gris Claro de tu documento
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().background(Color(0xFFF2F2F2)).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // 3. Logo (Usa el prefijo in_ que definiste)
-        Image(
-            painter = painterResource(id = R.drawable.in_pres_logo), // Cambia el nombre si es distinto
-            contentDescription = "Logo Terragest",
-            modifier = Modifier.size(150.dp)
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // 4. Campo de Correo
-        OutlinedTextField(
-            value = correo,
-            onValueChange = { correo = it },
-            label = { Text("Correo electrónico") },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.gen_maillogo),
-                    contentDescription = "Icono Correo"
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text("<", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.clickable { onNavegarAtras() }.padding(end = 16.dp, top = 8.dp, bottom = 8.dp))
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
+        Image(painter = painterResource(id = R.drawable.in_pres_logo), contentDescription = null, modifier = Modifier.size(150.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // 5. Campo de Contraseña
         OutlinedTextField(
-            value = contrasena,
-            onValueChange = { contrasena = it },
-            label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation(), // Oculta el texto con puntitos
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.gen_candadologo),
-                    contentDescription = "Icono Candado"
-                )
+            value = correo, onValueChange = { correo = it }, label = { Text("Correo electrónico") },
+            leadingIcon = { Icon(painterResource(id = R.drawable.gen_maillogo), contentDescription = null) },
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.Black, unfocusedTextColor = Color.Black)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = contrasena, onValueChange = { contrasena = it }, label = { Text("Contraseña") },
+            visualTransformation = if (verContrasena) VisualTransformation.None else PasswordVisualTransformation(),
+            leadingIcon = { Icon(painterResource(id = R.drawable.gen_candadologo), contentDescription = null) },
+            trailingIcon = {
+                IconButton(onClick = { verContrasena = !verContrasena }) {
+                    val icono = if (verContrasena) R.drawable.gen_ojoabierto else R.drawable.gen_ojocerrado
+                    Icon(painterResource(id = icono), contentDescription = "Ver")
+                }
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.Black, unfocusedTextColor = Color.Black)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        // 6. Texto de Olvidaste contraseña
-        Text(
-            text = "¿Olvidaste tu contraseña?",
-            color = Color(0xFF73563D), // El color Marrón Tierra de tu documento
-            fontSize = 14.sp,
-            modifier = Modifier.align(Alignment.End)
-        )
-
+        Text("¿Olvidaste tu contraseña?", color = Color(0xFF73563D), fontSize = 14.sp, modifier = Modifier.align(Alignment.End).clickable { onNavegarRecuperar() }.padding(vertical = 8.dp))
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 7. Tu Botón Verde (Llamamos a la función que creamos en los mensajes anteriores)
+        // NUEVO: Ahora el botón usa onNavegarInicio() en lugar del println
         BotonPrincipalVerde(
             textoDelBoton = "Inicia sesión",
-            alHacerClic = {
-                // Aquí pondremos la lógica de validación más adelante
-                println("Correo ingresado: $correo")
-            }
+            alHacerClic = { onNavegarInicio() }
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun VistaPreviaInicioSesion() {
-    InicioSesionScreen()
 }
