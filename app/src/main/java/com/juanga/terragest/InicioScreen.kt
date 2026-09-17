@@ -24,6 +24,7 @@ data class Actividad(val titulo: String, val subtitulo: String, val valor: Strin
 @Composable
 fun InicioScreen(
     onNavegarCultivos: () -> Unit = {},
+    onNavegarInsumos: () -> Unit = {}, // NUEVO PARÁMETRO PARA INSUMOS
     onNavegarGastos: () -> Unit = {},
     onNavegarReportes: () -> Unit = {},
     onNavegarPerfil: () -> Unit = {}
@@ -109,7 +110,10 @@ fun InicioScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 ItemAccesoRapido("Mis cultivos", R.drawable.paninicio_logoplantamano, onNavegarCultivos)
-                ItemAccesoRapido("Insumos", R.drawable.paninicio_logocarpeta, {})
+
+                // AQUÍ CONECTAMOS EL BOTÓN DE INSUMOS
+                ItemAccesoRapido("Insumos", R.drawable.paninicio_logocarpeta, onNavegarInsumos)
+
                 ItemAccesoRapido("Gastos", R.drawable.paninicio_logomoneda, onNavegarGastos)
                 ItemAccesoRapido("Reportes", R.drawable.paninicio_documento, onNavegarReportes)
             }
@@ -153,10 +157,6 @@ fun InicioScreen(
         }
     }
 }
-
-// =========================================================================
-// LAS FUNCIONES QUE FALTABAN ESTÁN AQUÍ ABAJO (NO LAS BORRES)
-// =========================================================================
 
 @Composable
 fun ItemResumen(titulo: String, valor: String, icono: Int, modifier: Modifier = Modifier) {

@@ -13,6 +13,7 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = "bienvenida") {
 
+        // --- MÓDULO DE AUTENTICACIÓN ---
         composable("bienvenida") {
             BienvenidaScreen(
                 onNavegarLogin = { navController.navigate("login") },
@@ -24,12 +25,12 @@ fun AppNavigation() {
             InicioSesionScreen(
                 onNavegarRecuperar = { navController.navigate("recuperar_inicio") },
                 onNavegarAtras = { navController.popBackStack() },
-                // NUEVO: Agregamos la ruta para ir al inicio al hacer clic en Iniciar Sesión
                 onNavegarInicio = {
-                    navController.navigate("inicio") {
-                        // Esto borra el login del historial para que si le dan atrás, no vuelvan a Iniciar Sesión
-                        popUpTo("bienvenida") { inclusive = false }
-                    }
+                    navController.navigate("inicio") { popUpTo("bienvenida") { inclusive = false } }
+                },
+                // NUEVA RUTA PARA EL ADMIN
+                onNavegarAdmin = {
+                    navController.navigate("admin_usuarios") { popUpTo("bienvenida") { inclusive = false } }
                 }
             )
         }
@@ -87,11 +88,7 @@ fun AppNavigation() {
             ExitoScreen(
                 mensajePrincipal = "Cuenta creada\ncorrectamente!",
                 textoDelBoton = "Iniciar sesión",
-                onNavegarLogin = {
-                    navController.navigate("login") {
-                        popUpTo("bienvenida") { inclusive = false }
-                    }
-                },
+                onNavegarLogin = { navController.navigate("login") { popUpTo("bienvenida") { inclusive = false } } },
                 onNavegarInicio = { navController.popBackStack("bienvenida", inclusive = false) }
             )
         }
@@ -100,25 +97,23 @@ fun AppNavigation() {
             ExitoScreen(
                 mensajePrincipal = "¡Contraseña actualizada\ncon éxito!",
                 textoDelBoton = "Iniciar sesión",
-                onNavegarLogin = {
-                    navController.navigate("login") {
-                        popUpTo("bienvenida") { inclusive = false }
-                    }
-                },
+                onNavegarLogin = { navController.navigate("login") { popUpTo("bienvenida") { inclusive = false } } },
                 onNavegarInicio = { navController.popBackStack("bienvenida", inclusive = false) }
             )
         }
 
-        // --- NUEVA PANTALLA: DASHBOARD (INICIO) ---
+        // --- MÓDULO DASHBOARD (INICIO) ---
         composable("inicio") {
             InicioScreen(
-                onNavegarCultivos = { /* Lo conectaremos en el siguiente paso */ },
-                onNavegarGastos = { /* Futuro módulo */ },
-                onNavegarReportes = { /* Futuro módulo */ },
-                onNavegarPerfil = { /* Futuro módulo */ }
+                onNavegarCultivos = { navController.navigate("mis_cultivos") },
+                onNavegarInsumos = { navController.navigate("mis_insumos") },
+                onNavegarGastos = { navController.navigate("mis_gastos") },
+                onNavegarReportes = { navController.navigate("reportes") },
+                onNavegarPerfil = { navController.navigate("perfil") }
             )
         }
 
+        // --- MÓDULO DE CULTIVOS ---
         composable("mis_cultivos") {
             MisCultivosScreen(
                 onNavegarAtras = { navController.popBackStack() },
@@ -129,8 +124,119 @@ fun AppNavigation() {
         composable("nuevo_cultivo") {
             NuevoCultivoScreen(
                 onNavegarAtras = { navController.popBackStack() },
-                // Temporalmente lo enviamos atrás simulando que guardó con éxito
-                onGuardarCultivo = { navController.popBackStack() }
+                onGuardarCultivo = { navController.navigate("confirmacion_cultivo") }
+            )
+        }
+
+        composable("detalle_cultivo") {
+            DetalleCultivoScreen(onNavegarAtras = { navController.popBackStack() })
+        }
+
+        composable("confirmacion_cultivo") {
+            ConfirmacionCultivoScreen(onNavegarListo = { navController.popBackStack("mis_cultivos", inclusive = false) })
+        }
+
+        // --- MÓDULO DE GASTOS ---
+        composable("mis_gastos") {
+            MisGastosScreen(
+                onNavegarAtras = { navController.popBackStack() },
+                onNavegarRegistrarGasto = { navController.navigate("registrar_gasto") }
+            )
+        }
+
+        composable("registrar_gasto") {
+            RegistrarGastosScreen(
+                onNavegarAtras = { navController.popBackStack() },
+                onGuardarGasto = { navController.navigate("confirmacion_gasto") }
+            )
+        }
+
+        composable("confirmacion_gasto") {
+            ConfirmacionGastoScreen(onNavegarListo = { navController.popBackStack("mis_gastos", inclusive = false) })
+        }
+
+        // --- MÓDULO DE INSUMOS ---
+        composable("mis_insumos") {
+            MisInsumosScreen(
+                onNavegarAtras = { navController.popBackStack() },
+                onNavegarRegistrarInsumo = { navController.navigate("registro_insumos") }
+            )
+        }
+
+        composable("registro_insumos") {
+            RegistroInsumosScreen(
+                onNavegarAtras = { navController.popBackStack() },
+                onGuardarInsumo = { navController.navigate("confirmacion_insumo") }
+            )
+        }
+
+        composable("confirmacion_insumo") {
+            ConfirmacionInsumoScreen(onNavegarListo = { navController.popBackStack("mis_insumos", inclusive = false) })
+        }
+
+        // --- MÓDULO DE REPORTES ---
+        composable("reportes") {
+            ReportesScreen(
+                onNavegarAtras = { navController.popBackStack() },
+                onNavegarDetalle = { tipo -> navController.navigate("reporte_detalle/$tipo") }
+            )
+        }
+
+        composable(
+            route = "reporte_detalle/{tipo}",
+            arguments = listOf(navArgument("tipo") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: "gastos"
+            ReporteDetalleScreen(
+                tipoReporte = tipo,
+                onNavegarAtras = { navController.popBackStack() }
+            )
+        }
+
+        // --- MÓDULO DE PERFIL ---
+        composable("perfil") {
+            PerfilScreen(
+                onNavegarCultivos = { navController.navigate("mis_cultivos") },
+                onNavegarInsumos = { navController.navigate("mis_insumos") },
+                onNavegarGastos = { navController.navigate("mis_gastos") },
+                onNavegarReportes = { navController.navigate("reportes") },
+                onNavegarInicio = {
+                    navController.navigate("inicio") {
+                        popUpTo("inicio") { inclusive = true }
+                    }
+                },
+                onNavegarInfoPersonal = { navController.navigate("info_personal") },
+                onNavegarConfiguracion = { navController.navigate("configuracion") },
+                // Te lleva a la pantalla de recuperación que ya habíamos hecho
+                onNavegarCambiarContrasena = { navController.navigate("recuperar_inicio") },
+                onNavegarAcercaDe = { navController.navigate("acerca_de") },
+                onCerrarSesion = {
+                    navController.navigate("bienvenida") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("info_personal") {
+            InformacionPersonalScreen(onNavegarAtras = { navController.popBackStack() })
+        }
+
+        composable("configuracion") {
+            ConfiguracionScreen(onNavegarAtras = { navController.popBackStack() })
+        }
+
+        composable("acerca_de") {
+            AcercaDeScreen(onNavegarAtras = { navController.popBackStack() })
+        }
+        // --- MÓDULO DE ADMINISTRADOR ---
+        composable("admin_usuarios") {
+            AdminUsuariosScreen(
+                onCerrarSesion = {
+                    navController.navigate("bienvenida") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
     }

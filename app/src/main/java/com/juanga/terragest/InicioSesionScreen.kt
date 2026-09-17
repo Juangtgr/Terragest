@@ -1,4 +1,5 @@
 package com.juanga.terragest
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,7 +21,8 @@ import androidx.compose.ui.unit.sp
 fun InicioSesionScreen(
     onNavegarRecuperar: () -> Unit = {},
     onNavegarAtras: () -> Unit = {},
-    onNavegarInicio: () -> Unit = {} // NUEVO PARÁMETRO
+    onNavegarInicio: () -> Unit = {},
+    onNavegarAdmin: () -> Unit = {} // NUEVO: Para el admin
 ) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
@@ -39,7 +41,7 @@ fun InicioSesionScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         OutlinedTextField(
-            value = correo, onValueChange = { correo = it }, label = { Text("Correo electrónico") },
+            value = correo, onValueChange = { correo = it }, label = { Text("Correo electrónico", color = Color.Gray) },
             leadingIcon = { Icon(painterResource(id = R.drawable.gen_maillogo), contentDescription = null) },
             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.Black, unfocusedTextColor = Color.Black)
@@ -47,7 +49,7 @@ fun InicioSesionScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = contrasena, onValueChange = { contrasena = it }, label = { Text("Contraseña") },
+            value = contrasena, onValueChange = { contrasena = it }, label = { Text("Contraseña", color = Color.Gray) },
             visualTransformation = if (verContrasena) VisualTransformation.None else PasswordVisualTransformation(),
             leadingIcon = { Icon(painterResource(id = R.drawable.gen_candadologo), contentDescription = null) },
             trailingIcon = {
@@ -64,10 +66,16 @@ fun InicioSesionScreen(
         Text("¿Olvidaste tu contraseña?", color = Color(0xFF73563D), fontSize = 14.sp, modifier = Modifier.align(Alignment.End).clickable { onNavegarRecuperar() }.padding(vertical = 8.dp))
         Spacer(modifier = Modifier.height(32.dp))
 
-        // NUEVO: Ahora el botón usa onNavegarInicio() en lugar del println
+        // EL TRUCO DEL ADMIN
         BotonPrincipalVerde(
             textoDelBoton = "Inicia sesión",
-            alHacerClic = { onNavegarInicio() }
+            alHacerClic = {
+                if (correo.lowercase().trim() == "admin@terragest.com") {
+                    onNavegarAdmin()
+                } else {
+                    onNavegarInicio()
+                }
+            }
         )
     }
 }
