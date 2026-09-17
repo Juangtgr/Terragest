@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "728164911789",
+    "project_id": "terragest-49143",
+    "storage_bucket": "terragest-49143.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:728164911789:android:3b09ab9846c09b2e519424",
+        "android_client_info": {
+          "package_name": "com.juanga.terragest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEWprkg471uRL7WWMtAoFV0c8sTvaunm8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

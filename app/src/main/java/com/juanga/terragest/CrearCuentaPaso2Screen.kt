@@ -1,5 +1,6 @@
 package com.juanga.terragest
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -19,6 +21,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+// NUEVO: Importamos Firebase
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun CrearCuentaPaso2Screen(
@@ -33,11 +37,15 @@ fun CrearCuentaPaso2Screen(
     var verContrasena by remember { mutableStateOf(false) }
     var verConfirmar by remember { mutableStateOf(false) }
 
+    // NUEVO: Variables para Firebase
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+    var cargando by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF2F2F2))
-            // LA MAGIA: imePadding hace que el teclado empuje el contenido y verticalScroll permite deslizar
             .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
@@ -64,7 +72,7 @@ fun CrearCuentaPaso2Screen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Text(text = "Correo electrónico", modifier = Modifier.fillMaxWidth(), fontWeight = FontWeight.Bold)
+        Text(text = "Correo electrónico", modifier = Modifier.fillMaxWidth(), fontWeight = FontWeight.Bold, color = Color.Black)
         OutlinedTextField(
             value = correo, onValueChange = { correo = it },
             leadingIcon = { Icon(painterResource(id = R.drawable.gen_maillogo), contentDescription = null) },
@@ -74,14 +82,13 @@ fun CrearCuentaPaso2Screen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Contraseña", modifier = Modifier.fillMaxWidth(), fontWeight = FontWeight.Bold)
+        Text(text = "Contraseña", modifier = Modifier.fillMaxWidth(), fontWeight = FontWeight.Bold, color = Color.Black)
         OutlinedTextField(
             value = contrasena, onValueChange = { contrasena = it },
             visualTransformation = if (verContrasena) VisualTransformation.None else PasswordVisualTransformation(),
             leadingIcon = { Icon(painterResource(id = R.drawable.gen_candadologo), contentDescription = null) },
             trailingIcon = {
                 IconButton(onClick = { verContrasena = !verContrasena }) {
-                    // AQUÍ CAMBIA EL ICONO
                     val icono = if (verContrasena) R.drawable.gen_ojoabierto else R.drawable.gen_ojocerrado
                     Icon(painterResource(id = icono), contentDescription = "Ver contraseña")
                 }
@@ -101,14 +108,13 @@ fun CrearCuentaPaso2Screen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Confirmar contraseña", modifier = Modifier.fillMaxWidth(), fontWeight = FontWeight.Bold)
+        Text(text = "Confirmar contraseña", modifier = Modifier.fillMaxWidth(), fontWeight = FontWeight.Bold, color = Color.Black)
         OutlinedTextField(
             value = confirmar, onValueChange = { confirmar = it },
             visualTransformation = if (verConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
             leadingIcon = { Icon(painterResource(id = R.drawable.gen_candadologo), contentDescription = null) },
             trailingIcon = {
                 IconButton(onClick = { verConfirmar = !verConfirmar }) {
-                    // AQUÍ CAMBIA EL ICONO
                     val icono = if (verConfirmar) R.drawable.gen_ojoabierto else R.drawable.gen_ojocerrado
                     Icon(painterResource(id = icono), contentDescription = "Ver contraseña")
                 }
@@ -119,9 +125,38 @@ fun CrearCuentaPaso2Screen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // LA MAGIA DE FIREBASE OCURRE AQUÍ
         BotonPrincipalVerde(
-            textoDelBoton = "Crear cuenta",
-            alHacerClic = { onNavegarExito() }
+            textoDelBoton = if (cargando) "Creando cuenta..." else "Crear cuenta",
+            alHacerClic = {
+                // 1. Validaciones básicas
+                if (correo.isEmpty() || contrasena.isEmpty() || confirmar.isEmpty()) {
+                    Toast.makeText(context, "Por favor llena todos los campos", Toast.LENGTH_SHORT).show()
+                    return@BotonPrincipalVerde
+                }
+                if (contrasena != confirmar) {
+                    Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                    return@BotonPrincipalVerde
+                }
+                if (contrasena.length < 6) {
+                    Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                    return@BotonPrincipalVerde
+                }
+
+                // 2. Intentar crear el usuario en Firebase
+                cargando = true
+                auth.createUserWithEmailAndPassword(correo.trim(), contrasena)
+                    .addOnCompleteListener { task ->
+                        cargando = false
+                        if (task.isSuccessful) {
+                            // Éxito: Navegar a la pantalla verde de confirmación
+                            onNavegarExito()
+                        } else {
+                            // Error: Mostrar el motivo (ej: correo ya existe, mal formato)
+                            Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))

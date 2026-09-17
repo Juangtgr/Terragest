@@ -6,12 +6,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// Importamos Firebase aquí también
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "bienvenida") {
+    // LÓGICA DE AUTO-LOGIN: Preguntamos si hay un usuario guardado
+    val auth = FirebaseAuth.getInstance()
+    val usuarioActual = auth.currentUser
+    val rutaInicial = if (usuarioActual != null) "inicio" else "bienvenida"
+
+    NavHost(navController = navController, startDestination = rutaInicial) {
 
         // --- MÓDULO DE AUTENTICACIÓN ---
         composable("bienvenida") {
@@ -28,7 +35,6 @@ fun AppNavigation() {
                 onNavegarInicio = {
                     navController.navigate("inicio") { popUpTo("bienvenida") { inclusive = false } }
                 },
-                // NUEVA RUTA PARA EL ADMIN
                 onNavegarAdmin = {
                     navController.navigate("admin_usuarios") { popUpTo("bienvenida") { inclusive = false } }
                 }
@@ -113,27 +119,30 @@ fun AppNavigation() {
             )
         }
 
-        // --- MÓDULO DE CULTIVOS ---
+        // 1. Ruta de Mis Cultivos actualizada
         composable("mis_cultivos") {
             MisCultivosScreen(
                 onNavegarAtras = { navController.popBackStack() },
-                onNavegarNuevoCultivo = { navController.navigate("nuevo_cultivo") }
+                onNavegarNuevoCultivo = { navController.navigate("nuevo_cultivo") },
+                // NUEVO: Ruta para editar
+                onEditarCultivo = { idCultivo -> navController.navigate("nuevo_cultivo?cultivoId=$idCultivo") }
             )
         }
 
-        composable("nuevo_cultivo") {
+        // 2. Ruta de Nuevo/Editar Cultivo actualizada
+        composable(
+            route = "nuevo_cultivo?cultivoId={cultivoId}",
+            arguments = listOf(androidx.navigation.navArgument("cultivoId") {
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("cultivoId")
             NuevoCultivoScreen(
+                cultivoId = id, // Pasamos el ID a la pantalla
                 onNavegarAtras = { navController.popBackStack() },
-                onGuardarCultivo = { navController.navigate("confirmacion_cultivo") }
+                onGuardarCultivo = { navController.popBackStack() }
             )
-        }
-
-        composable("detalle_cultivo") {
-            DetalleCultivoScreen(onNavegarAtras = { navController.popBackStack() })
-        }
-
-        composable("confirmacion_cultivo") {
-            ConfirmacionCultivoScreen(onNavegarListo = { navController.popBackStack("mis_cultivos", inclusive = false) })
         }
 
         // --- MÓDULO DE GASTOS ---
@@ -200,17 +209,14 @@ fun AppNavigation() {
                 onNavegarInsumos = { navController.navigate("mis_insumos") },
                 onNavegarGastos = { navController.navigate("mis_gastos") },
                 onNavegarReportes = { navController.navigate("reportes") },
-                onNavegarInicio = {
-                    navController.navigate("inicio") {
-                        popUpTo("inicio") { inclusive = true }
-                    }
-                },
+                onNavegarInicio = { navController.navigate("inicio") { popUpTo("inicio") { inclusive = true } } },
                 onNavegarInfoPersonal = { navController.navigate("info_personal") },
                 onNavegarConfiguracion = { navController.navigate("configuracion") },
-                // Te lleva a la pantalla de recuperación que ya habíamos hecho
                 onNavegarCambiarContrasena = { navController.navigate("recuperar_inicio") },
                 onNavegarAcercaDe = { navController.navigate("acerca_de") },
+                // CERRAR SESIÓN REAL CON FIREBASE
                 onCerrarSesion = {
+                    FirebaseAuth.getInstance().signOut() // Esto borra el recuerdo del usuario
                     navController.navigate("bienvenida") {
                         popUpTo(0) { inclusive = true }
                     }
@@ -229,10 +235,12 @@ fun AppNavigation() {
         composable("acerca_de") {
             AcercaDeScreen(onNavegarAtras = { navController.popBackStack() })
         }
+
         // --- MÓDULO DE ADMINISTRADOR ---
         composable("admin_usuarios") {
             AdminUsuariosScreen(
                 onCerrarSesion = {
+                    FirebaseAuth.getInstance().signOut()
                     navController.navigate("bienvenida") {
                         popUpTo(0) { inclusive = true }
                     }
