@@ -47,7 +47,7 @@ fun AcercaDeScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Text("Diana Benavides\nSamuel Caicedo - Juan Lopez - Nicolas Escobar\n29/05/2026\nversión 1.0\nContacto: 3186075203",
+        Text("Diana Benavides\nSamuel Caicedo - Juan Lopez - Nicolas Escobar\n29/05/2026\nversión 1.1\nContacto: 3186075203",
             fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(24.dp))
     }

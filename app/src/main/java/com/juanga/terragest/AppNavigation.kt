@@ -57,10 +57,10 @@ fun AppNavigation() {
             )
         }
 
-        composable("recuperar_inicio") {
+        composable(route = "recuperar_inicio") {
             RestablecerInicioScreen(
                 onNavegarAtras = { navController.popBackStack() },
-                onNavegarPaso1 = { navController.navigate("recuperar_paso1") }
+                onNavegarLogin = { navController.navigate("login") } // <-- ESTE ES EL CAMBIO
             )
         }
 

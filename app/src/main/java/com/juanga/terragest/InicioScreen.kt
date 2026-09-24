@@ -17,26 +17,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
-// Modelo de datos temporal para la base de datos
 data class Actividad(val titulo: String, val subtitulo: String, val valor: String, val fecha: String)
 
 @Composable
 fun InicioScreen(
     onNavegarCultivos: () -> Unit = {},
-    onNavegarInsumos: () -> Unit = {}, // NUEVO PARÁMETRO PARA INSUMOS
+    onNavegarInsumos: () -> Unit = {},
     onNavegarGastos: () -> Unit = {},
     onNavegarReportes: () -> Unit = {},
     onNavegarPerfil: () -> Unit = {}
 ) {
-    // VARIABLES DE ESTADO (Listas para recibir datos de Firebase)
-    var nombreUsuario by remember { mutableStateOf("...") }
+    val auth = FirebaseAuth.getInstance()
+    var nombreUsuario by remember { mutableStateOf(auth.currentUser?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() } ?: "Agricultor") }
+
     var cultivosActivos by remember { mutableStateOf("0") }
     var gastosMes by remember { mutableStateOf("$ 0") }
     var produccion by remember { mutableStateOf("0 kg") }
     var rentabilidad by remember { mutableStateOf("0%") }
 
-    // Lista vacía simulando que Firebase aún no trae datos
     var actividades by remember { mutableStateOf(listOf<Actividad>()) }
 
     Scaffold(
@@ -57,27 +57,18 @@ fun InicioScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            // --- ENCABEZADO ---
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Image(
-                    painter = painterResource(id = R.drawable.gen_personaicon),
-                    contentDescription = "Foto",
-                    modifier = Modifier.size(50.dp)
-                )
+                Image(painter = painterResource(id = R.drawable.gen_personaicon), contentDescription = "Foto", modifier = Modifier.size(50.dp))
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(text = "¡Hola, $nombreUsuario!", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                    Text(text = "Bienvenida a TERRAGEST", fontSize = 14.sp, color = Color.DarkGray)
+                    Text(text = "Bienvenid@ a TERRAGEST", fontSize = 14.sp, color = Color.DarkGray)
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- RESUMEN GENERAL ---
-            Card(
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(text = "Resumen general", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
@@ -105,22 +96,17 @@ fun InicioScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- ACCESOS RÁPIDOS ---
             Text(text = "Accesos rápidos", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 ItemAccesoRapido("Mis cultivos", R.drawable.paninicio_logoplantamano, onNavegarCultivos)
-
-                // AQUÍ CONECTAMOS EL BOTÓN DE INSUMOS
                 ItemAccesoRapido("Insumos", R.drawable.paninicio_logocarpeta, onNavegarInsumos)
-
                 ItemAccesoRapido("Gastos", R.drawable.paninicio_logomoneda, onNavegarGastos)
                 ItemAccesoRapido("Reportes", R.drawable.paninicio_documento, onNavegarReportes)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- ACTIVIDAD RECIENTE ---
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Actividad reciente", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(text = "Ver todo", fontSize = 14.sp, color = Color(0xFF3C733F), fontWeight = FontWeight.Bold)
@@ -128,19 +114,10 @@ fun InicioScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             if (actividades.isEmpty()) {
-                Text(
-                    text = "Aún no hay registros recientes.",
-                    color = Color.Gray,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                )
+                Text("Aún no hay registros recientes.", color = Color.Gray, fontSize = 14.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(16.dp))
             } else {
                 actividades.forEach { actividad ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                        shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
                         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = actividad.titulo, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
@@ -173,12 +150,7 @@ fun ItemResumen(titulo: String, valor: String, icono: Int, modifier: Modifier = 
 @Composable
 fun ItemAccesoRapido(texto: String, icono: Int, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            modifier = Modifier.size(60.dp)
-        ) {
+        Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.size(60.dp)) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Image(painter = painterResource(id = icono), contentDescription = texto, modifier = Modifier.size(40.dp))
             }
@@ -189,46 +161,12 @@ fun ItemAccesoRapido(texto: String, icono: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun BarraNavegacionInferior(
-    onNavegarCultivos: () -> Unit,
-    onNavegarGastos: () -> Unit,
-    onNavegarReportes: () -> Unit,
-    onNavegarPerfil: () -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        NavigationBarItem(
-            icon = { Image(painterResource(id = R.drawable.paninicio_logohome), contentDescription = "Inicio", modifier = Modifier.size(24.dp)) },
-            label = { Text("Inicio", fontSize = 10.sp) },
-            selected = true,
-            onClick = { /* Ya estamos aquí */ },
-            colors = NavigationBarItemDefaults.colors(indicatorColor = Color(0xFFE8F5E9))
-        )
-        NavigationBarItem(
-            icon = { Image(painterResource(id = R.drawable.paninicio_logomanoplantasincolor), contentDescription = "Cultivos", modifier = Modifier.size(24.dp)) },
-            label = { Text("Cultivos", fontSize = 10.sp) },
-            selected = false,
-            onClick = onNavegarCultivos
-        )
-        NavigationBarItem(
-            icon = { Image(painterResource(id = R.drawable.paninicio_modenalogosincolor), contentDescription = "Gastos", modifier = Modifier.size(24.dp)) },
-            label = { Text("Gastos", fontSize = 10.sp) },
-            selected = false,
-            onClick = onNavegarGastos
-        )
-        NavigationBarItem(
-            icon = { Image(painterResource(id = R.drawable.paninicio_documento), contentDescription = "Reportes", modifier = Modifier.size(24.dp)) },
-            label = { Text("Reportes", fontSize = 10.sp) },
-            selected = false,
-            onClick = onNavegarReportes
-        )
-        NavigationBarItem(
-            icon = { Image(painterResource(id = R.drawable.panperf_perfillogopequeno), contentDescription = "Perfil", modifier = Modifier.size(24.dp)) },
-            label = { Text("Perfil", fontSize = 10.sp) },
-            selected = false,
-            onClick = onNavegarPerfil
-        )
+fun BarraNavegacionInferior(onNavegarCultivos: () -> Unit, onNavegarGastos: () -> Unit, onNavegarReportes: () -> Unit, onNavegarPerfil: () -> Unit) {
+    NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
+        NavigationBarItem(icon = { Image(painterResource(id = R.drawable.paninicio_logohome), contentDescription = "Inicio", modifier = Modifier.size(24.dp)) }, label = { Text("Inicio", fontSize = 10.sp) }, selected = true, onClick = { }, colors = NavigationBarItemDefaults.colors(indicatorColor = Color(0xFFE8F5E9)))
+        NavigationBarItem(icon = { Image(painterResource(id = R.drawable.paninicio_logomanoplantasincolor), contentDescription = "Cultivos", modifier = Modifier.size(24.dp)) }, label = { Text("Cultivos", fontSize = 10.sp) }, selected = false, onClick = onNavegarCultivos)
+        NavigationBarItem(icon = { Image(painterResource(id = R.drawable.paninicio_modenalogosincolor), contentDescription = "Gastos", modifier = Modifier.size(24.dp)) }, label = { Text("Gastos", fontSize = 10.sp) }, selected = false, onClick = onNavegarGastos)
+        NavigationBarItem(icon = { Image(painterResource(id = R.drawable.paninicio_documento), contentDescription = "Reportes", modifier = Modifier.size(24.dp)) }, label = { Text("Reportes", fontSize = 10.sp) }, selected = false, onClick = onNavegarReportes)
+        NavigationBarItem(icon = { Image(painterResource(id = R.drawable.panperf_perfillogopequeno), contentDescription = "Perfil", modifier = Modifier.size(24.dp)) }, label = { Text("Perfil", fontSize = 10.sp) }, selected = false, onClick = onNavegarPerfil)
     }
 }

@@ -14,8 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun PerfilScreen(
@@ -30,15 +32,13 @@ fun PerfilScreen(
     onNavegarCambiarContrasena: () -> Unit = {},
     onCerrarSesion: () -> Unit = {}
 ) {
-    // Variables de estado vacías, listas para recibir los datos desde Firebase
-    var nombreUsuario by remember { mutableStateOf("Cargando nombre...") }
-    var correoUsuario by remember { mutableStateOf("Cargando correo...") }
-    var telefonoUsuario by remember { mutableStateOf("Cargando teléfono...") }
+    val auth = FirebaseAuth.getInstance()
+    val correoUsuario = auth.currentUser?.email ?: "correo@noencontrado.com"
+    val nombreUsuario = correoUsuario.substringBefore("@").replaceFirstChar { it.uppercase() }
 
     Scaffold(
         bottomBar = {
             NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-                // CORREGIDO: Ahora Inicio funciona y Perfil está marcado como seleccionado
                 NavigationBarItem(
                     icon = { Image(painterResource(id = R.drawable.paninicio_logohome), contentDescription = "Inicio", modifier = Modifier.size(24.dp)) },
                     label = { Text("Inicio", fontSize = 10.sp) },
@@ -77,19 +77,24 @@ fun PerfilScreen(
             modifier = Modifier.fillMaxSize().background(Color(0xFFF2F2F2)).padding(paddingValues).padding(24.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Perfil", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                // CORREGIDO: Usando onNavegarInicio
+                Text("<", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.clickable { onNavegarInicio() }.padding(end = 16.dp, top = 8.dp, bottom = 8.dp))
+                Text("Perfil", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.width(32.dp))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
             Divider(color = Color(0xFF3C733F), thickness = 2.dp)
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Información del usuario (Dinámica)
+            // Información del usuario
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 Image(painter = painterResource(id = R.drawable.gen_personaicon), contentDescription = "Foto", modifier = Modifier.size(80.dp))
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(text = nombreUsuario, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
                     Text(text = correoUsuario, fontSize = 14.sp, color = Color.DarkGray)
-                    Text(text = telefonoUsuario, fontSize = 14.sp, color = Color.DarkGray)
                 }
             }
 
