@@ -1,5 +1,6 @@
 package com.juanga.terragest
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,9 +22,14 @@ fun ConfiguracionScreen(
     onNavegarAtras: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    var usoDatos by remember { mutableStateOf(false) }
-    var modoAhorroEnergia by remember { mutableStateOf(false) }
-    var mantenerSesion by remember { mutableStateOf(true) }
+
+    // Inicializamos SharedPreferences para guardar los datos localmente en el celular
+    val sharedPref = context.getSharedPreferences("TerragestConfig", Context.MODE_PRIVATE)
+
+    // Leemos los valores guardados (el segundo parámetro es el valor por defecto si es la primera vez)
+    var soloWifi by remember { mutableStateOf(sharedPref.getBoolean("solo_wifi", true)) }
+    var ahorroDatos by remember { mutableStateOf(sharedPref.getBoolean("ahorro_datos", false)) }
+    var autoGuardado by remember { mutableStateOf(sharedPref.getBoolean("auto_guardado", true)) }
 
     Column(
         modifier = Modifier.fillMaxSize().background(Color(0xFFF2F2F2)).padding(24.dp)
@@ -43,32 +49,40 @@ fun ConfiguracionScreen(
             Column(modifier = Modifier.padding(16.dp)) {
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Solo descargar imágenes con Wi-Fi", fontSize = 14.sp, color = Color.Black)
+                    Text("Cargar fotos solo con Wi-Fi", fontSize = 14.sp, color = Color.Black)
                     Switch(
-                        checked = usoDatos,
-                        onCheckedChange = { usoDatos = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF3C733F))
-                    )
-                }
-                Divider(color = Color(0xFFF2F2F2), modifier = Modifier.padding(vertical = 8.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Modo Ahorro de Energía (sin animaciones)", fontSize = 14.sp, color = Color.Black)
-                    Switch(
-                        checked = modoAhorroEnergia,
-                        onCheckedChange = { modoAhorroEnergia = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF3C733F))
-                    )
-                }
-                Divider(color = Color(0xFFF2F2F2), modifier = Modifier.padding(vertical = 8.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Mantener sesión iniciada", fontSize = 14.sp, color = Color.Black)
-                    Switch(
-                        checked = mantenerSesion,
+                        checked = soloWifi,
                         onCheckedChange = {
-                            mantenerSesion = it
-                            Toast.makeText(context, "Configuración actualizada", Toast.LENGTH_SHORT).show()
+                            soloWifi = it
+                            // Guardamos la preferencia inmediatamente
+                            sharedPref.edit().putBoolean("solo_wifi", it).apply()
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF3C733F))
+                    )
+                }
+                Divider(color = Color(0xFFF2F2F2), modifier = Modifier.padding(vertical = 8.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Modo Ahorro de Energía", fontSize = 14.sp, color = Color.Black)
+                    Switch(
+                        checked = ahorroDatos,
+                        onCheckedChange = {
+                            ahorroDatos = it
+                            sharedPref.edit().putBoolean("ahorro_datos", it).apply()
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF3C733F))
+                    )
+                }
+                Divider(color = Color(0xFFF2F2F2), modifier = Modifier.padding(vertical = 8.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Guardar reportes automáticamente", fontSize = 14.sp, color = Color.Black)
+                    Switch(
+                        checked = autoGuardado,
+                        onCheckedChange = {
+                            autoGuardado = it
+                            sharedPref.edit().putBoolean("auto_guardado", it).apply()
+                            if(it) Toast.makeText(context, "Autoguardado activado", Toast.LENGTH_SHORT).show()
                         },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF3C733F))
                     )
