@@ -11,7 +11,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // ¡Corregido! Ahora llamamos directamente al tema
             TerragestTheme {
                 AppNavigation()
             }

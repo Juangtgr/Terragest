@@ -1,5 +1,6 @@
 package com.juanga.terragest
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,7 +22,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.juanga.terragest.R // <-- Esta es la línea mágica que quita el error rojo
 
 @Composable
 fun RestablecerPaso3Screen(
@@ -31,6 +32,18 @@ fun RestablecerPaso3Screen(
     var confirmar by remember { mutableStateOf("") }
     var verContrasena by remember { mutableStateOf(false) }
     var verConfirmar by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    var cargando by remember { mutableStateOf(false) }
+
+    // Evaluaciones reactivas en tiempo real
+    val tieneMinimo = contrasena.length >= 8
+    val tieneMayuscula = contrasena.any { it.isUpperCase() }
+    val tieneNumero = contrasena.any { it.isDigit() }
+    val tieneEspecial = contrasena.any { "!@#$%^&*()_+-=[]{}|;':\",./<>?".contains(it) }
+    val contrasenasCoinciden = contrasena.isNotEmpty() && contrasena == confirmar
+
+    val cumpleTodo = tieneMinimo && tieneMayuscula && tieneNumero && tieneEspecial && contrasenasCoinciden
 
     Column(
         modifier = Modifier
@@ -84,11 +97,12 @@ fun RestablecerPaso3Screen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Requisitos dinámicos reutilizando la función que creamos en el paso 1
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
-            CheckDeValidacion("Mínimo 8 caracteres")
-            CheckDeValidacion("Una letra mayúscula")
-            CheckDeValidacion("Un número")
-            CheckDeValidacion("Un carácter especial (!@#$%)")
+            CheckDeValidacionDinamico("Mínimo 8 caracteres", tieneMinimo)
+            CheckDeValidacionDinamico("Una letra mayúscula", tieneMayuscula)
+            CheckDeValidacionDinamico("Un número", tieneNumero)
+            CheckDeValidacionDinamico("Un carácter especial (!@#$%)", tieneEspecial)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -103,13 +117,43 @@ fun RestablecerPaso3Screen(
                 Icon(painterResource(id = icono), contentDescription = null) }
             },
             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp),
+            isError = contrasena.isNotEmpty() && confirmar.isNotEmpty() && !contrasenasCoinciden,
             colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.Black, unfocusedTextColor = Color.Black)
         )
+        if (contrasena.isNotEmpty() && confirmar.isNotEmpty() && !contrasenasCoinciden) {
+            Text("Las contraseñas no coinciden", color = Color.Red, fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(start = 8.dp, top = 4.dp))
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
-        BotonPrincipalVerde(textoDelBoton = "Restablecer contraseña", alHacerClic = { onNavegarExito() })
+
+        Button(
+            onClick = {
+                if (!cumpleTodo) {
+                    Toast.makeText(context, "Completa todos los requisitos para continuar", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+                cargando = true
+                // Lógica futura de actualización de Firebase
+                onNavegarExito()
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (cumpleTodo) Color(0xFF3C733F) else Color.LightGray
+            ),
+            shape = RoundedCornerShape(25.dp),
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            enabled = !cargando
+        ) {
+            Text(
+                text = if (cargando) "Restableciendo..." else "Restablecer contraseña",
+                color = if (cumpleTodo) Color.White else Color.DarkGray,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-
+// Se asume que CheckDeValidacionDinamico ya existe en el paquete gracias a CrearCuentaPaso2Screen.kt.
+// Si Android Studio marca un error, asegúrate de que ambos archivos estén en el mismo paquete.
